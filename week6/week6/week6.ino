@@ -52,12 +52,15 @@ void loop() {
    lcd.clear();
   float pin = analogRead(A2);
   float voltage = (5*(pin/1023));
+  lcd.setCursor(0, 1);
+  lcd.print(voltage);
+  lcd.setCursor(0,0);
   if ((voltage <= 1.4)){
      lcd.print("North");
     digitalWrite(10,0);
   }
   else if ((voltage <= 2.00) && (voltage > 1.4)){
-     lcd.print("North East");
+     lcd.print("North East");     
      digitalWrite(10,0);
   }
   else if ((voltage > 2.0) && (voltage <= 2.8)){
