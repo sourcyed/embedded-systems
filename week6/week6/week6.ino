@@ -8,6 +8,19 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 float blinkingFrequency;
 int pinState;
 
+int AD_conversion(byte ch)
+{
+  DIDR0=B11111111;
+
+  ADMUX=B01000000 | ch;
+
+  ADCSRA=B11000111;
+
+  while( (ADCSRA & B01000000) != 0);
+
+  return ADC;
+}
+
 void setup() {
  // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
