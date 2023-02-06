@@ -32,7 +32,7 @@ void setup() {
   pinMode(10, OUTPUT);
   pinMode(13, OUTPUT);
 
-  float time1, time2, time3;
+  /*float time1, time2, time3;
 
   time1 = micros();
   analogRead(A2);  
@@ -43,39 +43,49 @@ void setup() {
   lcd.print(String("Ana.:") + String(time2));
   lcd.setCursor(0,1);
   lcd.print(String("Reg.:") + String(time3));
+}*/
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  // delay(1000);
-  // lcd.clear();
-  // float pin = analogRead(A2);
-  // float voltage = (5*(pin/1023));
-  // if (voltage <= 0.5){
-  //   lcd.print(50);
-  //   digitalWrite(10,0);
-  // }
-  // else if ((voltage <= 1.5) && (voltage > 0.5)){
-  //   lcd.print(100);
-  //   digitalWrite(10,0);
-  // }
-  // else if ((voltage > 1.5) && (voltage <= 2.5)){
-  //     lcd.print(150);
-  //     digitalWrite(10,0);
-  //   }  
-  // else if ((voltage > 2.5) && (voltage <= 3.5)){
-  //   lcd.print(200);
-  //   digitalWrite(10,0);
-  // }
-  // else if ((voltage > 3.5) && (voltage <= 4.5)){
-  //   lcd.print(250);
-  //   digitalWrite(10, 1);
-  // }
-  // else if ((voltage > 4.5) && (voltage <= 5)){
-  //   lcd.print(300);
-  //   digitalWrite(10, 1);
-  // }
-  // else {
-  //   lcd.print("Error");
-  // }
+  delay(1000);
+   lcd.clear();
+  float pin = analogRead(A2);
+  float voltage = (5*(pin/1023));
+  if ((voltage <= 1.4)){
+     lcd.print("North");
+    digitalWrite(10,0);
+  }
+  else if ((voltage <= 2.00) && (voltage > 1.4)){
+     lcd.print("North East");
+     digitalWrite(10,0);
+  }
+  else if ((voltage > 2.0) && (voltage <= 2.8)){
+       lcd.print("East");
+       digitalWrite(10,0);
+     }  
+   else if ((voltage > 2.8) && (voltage <= 3)){
+     lcd.print("South East");
+     digitalWrite(10,0);
+   }
+   else if ((voltage > 3.0) && (voltage <= 3.2)){
+     lcd.print("South");
+     digitalWrite(10, 1);
+   }
+   else if ((voltage > 3.2) && (voltage <= 3.9)){
+     lcd.print("South West");
+     digitalWrite(10, 1);
+   }
+   else if ((voltage > 3.9) && (voltage <= 4.3)){
+     lcd.print("West");
+     digitalWrite(10, 1);
+   }
+    else if ((voltage > 4.3) && (voltage < 4.8)){
+        lcd.print("North West");
+        digitalWrite(10, 1);
+      }   
+   else {
+     lcd.print("North");
+   }
 }
+
