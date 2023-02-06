@@ -25,10 +25,11 @@ void setup() {
 
 // the loop function runs over and over again forever
 void loop() {
+  delay(500);
   lcd.clear();
-  const int pulse_duration = 100;
-  const int pulse_high = 50;
+  const int pulse_high = 200;
   const int pulse_low = 50;
+  const int pulse_duration = pulse_high + pulse_low;
   digitalWrite(13, 1);  // turn the LED on (HIGH is the voltage level)
   delay(pulse_high);          // wait for a second
   digitalWrite(13, 0);  // turn the LED off by making the voltage LOW
@@ -44,10 +45,10 @@ void loop() {
     int pinState = digitalRead(6);
 
     lcd.setCursor(0, 0);
-    lcd.print("Dig." + pinState);
+    lcd.print("Dig." + String(pinState));
 
     lcd.setCursor(7, 0);
-    lcd.print("Ana.: " + analogRead(A2));
+    lcd.print("Ana.:" + String(analogRead(A2)));
 
     calculate(pulse_duration, pulse_high);
   }
@@ -58,7 +59,7 @@ void calculate(int pulse_duration, int high_duration) {
   freq = 1 / (float)pulse_duration;
   duty_cycle = ((float)high_duration / (float)pulse_duration) * 100;
   lcd.setCursor(0, 1);
-  lcd.print("dut:" + duty_cycle + "%");
+  lcd.print(String("dut:") + String((int)duty_cycle) + String("%"));
   lcd.setCursor(7, 1);
-  lcd.print("fr:" + freq + "Hz");
+  lcd.print(String("fr:") + String(freq) + String("Hz"));
 }
