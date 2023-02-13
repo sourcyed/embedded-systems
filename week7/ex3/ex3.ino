@@ -21,7 +21,7 @@ void buttonISR() {
 void setup() {
   lcd.begin(16, 2); // Initialize the LCD
   pinMode(buttonPin, INPUT_PULLUP); // Set the button pin as an input with pull-up resistor
-  attachInterrupt(digitalPinToInterrupt(buttonPin), buttonISR, FALLING); // Attach the ISR to the button pin, trigger on a falling edge
+  attachInterrupt(digitalPinToInterrupt(buttonPin), buttonISR, RISING); // Attach the ISR to the button pin, trigger on a falling edge
 }
 
 void loop() {
