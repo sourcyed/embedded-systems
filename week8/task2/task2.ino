@@ -1,4 +1,6 @@
 #include <LiquidCrystal.h>
+#include <Keypad.h>
+
 
 // initialize the library by associating any needed LCD interface pin
 // with the arduino pin number it is connected to
@@ -8,7 +10,20 @@ LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 int buttonPin = 10; // Pin connected to the button
 volatile bool printVoltage = true;
 
+const byte ROWS = 4; 
+const byte COLS = 4; 
 
+char hexaKeys[ROWS][COLS] = {
+  {'1', '2', '3', 'A'},
+  {'4', '5', '6', 'B'},
+  {'7', '8', '9', 'C'},
+  {'*', '0', '#', 'D'}
+};
+
+byte pin_rows[ROWS] = {2, 3, 4, 5}; //connect to the row pinouts of the keypad
+byte pin_column[COLS] = {6, 7, 8, 9}; //connect to the column pinouts of the keypad
+
+Keypad customKeypad = Keypad(makeKeymap(hexaKeys), pin_rows, pin_column, ROWS, COLS);
 
 void buttonISR () {
   printVoltage = !printVoltage;
@@ -34,7 +49,17 @@ void loop() {
    lcd.clear();
   float pin = analogRead(A2);
   float voltage = (5*(pin/1023));
+
+  char key = customKeypad.getKey();
+
+  if (key){
+    Serial.print(key);
+    if (key == '*')
+      printVoltage = !printVoltage;
+  }
+
   lcd.setCursor(0, 0);
+  
   if (printVoltage) {
     lcd.print(voltage);
   }

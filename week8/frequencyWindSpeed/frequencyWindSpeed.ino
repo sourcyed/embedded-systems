@@ -20,10 +20,10 @@ char hexaKeys[ROWS][COLS] = {
   {'*', '0', '#', 'D'}
 };
 
-byte rowPins[ROWS] = {9, 8, 7, 6}; 
-byte colPins[COLS] = {5, 4, 3, 2}; 
+byte pin_rows[ROWS] = {2, 3, 4, 5}; //connect to the row pinouts of the keypad
+byte pin_column[COLS] = {6, 7, 8, 9}; //connect to the column pinouts of the keypad
 
-Keypad customKeypad = Keypad(makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
+Keypad customKeypad = Keypad(makeKeymap(hexaKeys), pin_rows, pin_column, ROWS, COLS); 
 
 volatile bool isWindSpeed = true;
 const int frequencyInput = 23;
@@ -40,8 +40,7 @@ void waveformISR() {
 }
 
 void buttonISR () {
-  if (isWindSpeed == true) isWindSpeed = false;
-  else isWindSpeed = true;
+  isWindSpeed = !isWindSpeed;
 }
 
 void setup() {
@@ -57,6 +56,14 @@ void loop() {
   delay(100);
   lcd.clear();
   lcd.setCursor(0,0);
+
+  char key = customKeypad.getKey();
+
+  if (key){
+    Serial.print(key);
+    if (key == '*')
+    isWindSpeed = !isWindSpeed;
+  }
 
   if (isWindSpeed == true) {
       windSpeed = -0.24 + frequency * 0.699;
