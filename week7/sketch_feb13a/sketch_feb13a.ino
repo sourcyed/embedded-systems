@@ -13,46 +13,10 @@ void setup() {
   pinMode(A2, INPUT);
   pinMode(10, OUTPUT);
   pinMode(13, OUTPUT);
-  attachInterrupt(digitalPinToInterrupt(2), interruptServiceRoutine, 1);
-}
-
-int i = 65; // until 90
-int col = 0;
-int row = 0;
-int timesPressed = 0;
-void interruptServiceRoutine(){
-  timesPressed++;
-  lcd.clear();
-  lcd.print((timesPressed/2));
 }
 void loop() {
   // put your main code here, to run repeatedly:
   delay(400);
   lcd.clear();
-  
-  lcd.setCursor(col, row);
-  
-  lcd.print(char(i++)); //Prints the next character
-
-
-  if (i > 90) {
-    i = 65;
-  }
-  
-  if (row == 0) {
-    if (col == 15) {
-      row = 1;
-    }
-    else {
-      col += 1;
-    }
-  } 
-  else if (row == 1) {
-    if (col == 0) {
-      row = 0;
-    } else {
-      col -= 1;
-    }
-  }
-  
+ 
 }
