@@ -42,12 +42,8 @@ void setup() {
  // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
   Serial.begin(9600);
-  Serial.println("Start 20.3.2023")
-  pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(6, INPUT);
-  pinMode(A2, INPUT);
-  pinMode(10, OUTPUT);
-  pinMode(13, OUTPUT);
+  Serial.println("Start 20.3.2023");
+
   fetch_IP();
   Connect_MQTT_server();  
 }
@@ -78,7 +74,7 @@ void fetch_IP(void){
   delay(1500);  
 }
 
-oid send_MQTT_message(int num){                     // Send MQTT message
+void send_MQTT_message(int num){                     // Send MQTT message
   char bufa[50];                             //  Print message to serial monitor
   if (client.connected()){ 
     sprintf(bufa,"My_MQTT_message: value =%d", num);               // create message with header and data
