@@ -4,10 +4,10 @@
 #include <TimerOne.h>
 #include <Keypad.h>
 
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 const int rs = 37, en = 36, d4 = 35, d5 = 34, d6 = 33, d7 = 32;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7); //set up lcd 
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 const byte ROWS = 4; 
 const byte COLS = 4; 
 
@@ -22,11 +22,14 @@ byte pin_rows[ROWS] = {2, 3, 4, 5}; //connect to the row pinouts of the keypad
 byte pin_column[COLS] = {6, 7, 8, 9}; //connect to the column pinouts of the keypad
 
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), pin_rows, pin_column, ROWS, COLS); //set up keypad
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 EthernetClient ethClient; //Create the eth object
 static uint8_t mymac[6] = { 0x44,0x76,0x58,0x10,0x00,0x62 };
-unsigned int Port = 1883;                         
-byte server[] = { 172,16,200,88 }; 
+
+//  MQTT settings
+ 
+unsigned int Port = 1883;                          //  MQTT port number
+byte server[] = { 10,6,0,21 };    
 
 char* deviceId = "picha"; //
 char* clientId = "pi2023";
@@ -34,25 +37,38 @@ char* deviceSecret = "tamk";
 
 void callback(char* topic, byte* payload, unsigned int lenght);
 PubSubClient client(server, Port, callback, ethClient); 
+                                                                                           //
+#define inTopic    "myTopic"                    // MQTT channel where data are received   //
+#define outTopic   "myTopic"                                                             //
+//////////////////////////////////////////////////////////////////////////////////////////
 
-#define inTopic    "myTopic"                    // MQTT channel where data are received 
-#define outTopic   "myTopic" 
+const int frequencyInput = 23;
 
+void waveformISR() {
+    
+}
+
+float windSpeed = 0;
 void setup() {
  // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
   Serial.begin(9600);
   Serial.println("Start 20.3.2023");
-  pinMode(A2, INPUT);
+  //pinMode(A2, INPUT);
   fetch_IP();
   Connect_MQTT_server();  
 }
+
 void loop() {
   delay(400);
   lcd.clear();
+  //float pin = analogRead(A2);
+  //float voltage = (5*(pin/1023));
   int inx=10;
   while(true){
+    lcd.clear();
     Serial.println("Are we connected?");
+    lcd.println("Are we connected?");
     send_MQTT_message(inx);
     inx++;
     delay(1500);
@@ -62,16 +78,22 @@ void loop() {
 
 void fetch_IP(void){
   byte rev=1;
-  rev=Ethernet.begin(mymac);
+  lcd.setCursor(0,1); 
+  lcd.print("     Waiting IP     ");
+  rev=Ethernet.begin( mymac);                  // get IP number
   Serial.print( F("\nW5100 Revision "));
+  lcd.print( F("\nW5100 Revision "));
   if (rev==0){
     Serial.println( F("Failed to access Ethernet controller"));
   }
 
   Serial.println( F("Setting up DHCP"));
+  lcd.print("Connected with IP: ");
+  lcd.print(Ethernet.localIP());
   Serial.print("Connected with IP: "); 
   Serial.println(Ethernet.localIP()); 
   delay(1500);  
+  lcd.clear();
 }
 
 void send_MQTT_message(int num){                     // Send MQTT message
