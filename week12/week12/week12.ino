@@ -25,11 +25,16 @@ Keypad customKeypad = Keypad(makeKeymap(hexaKeys), pin_rows, pin_column, ROWS, C
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 EthernetClient ethClient; //Create the eth object
 static uint8_t mymac[6] = { 0x44,0x76,0x58,0x10,0x00,0x62 };
+<<<<<<< HEAD
 
 //  MQTT settings
  
 unsigned int Port = 1883;                          //  MQTT port number
 byte server[] = { 10,6,0,21 };    
+=======
+unsigned int Port = 1883;                         
+byte server[] = { 10,6,0,20 }; 
+>>>>>>> be0451f0f85192191b52e11bfa4bcf5c62c1769c
 
 char* deviceId = "picha"; //
 char* clientId = "pi2023";
@@ -42,7 +47,12 @@ PubSubClient client(server, Port, callback, ethClient);
 #define outTopic   "myTopic"                                                             //
 //////////////////////////////////////////////////////////////////////////////////////////
 
+<<<<<<< HEAD
 const int frequencyInput = 23;
+=======
+#define inTopic    "ICT18_in_2020"                    // MQTT channel where data are received 
+#define outTopic   "ICT18_out_2020" 
+>>>>>>> be0451f0f85192191b52e11bfa4bcf5c62c1769c
 
 void waveformISR() {
     
@@ -106,6 +116,8 @@ void send_MQTT_message(int num){                     // Send MQTT message
   else{                                                           //   Re connect if connection is lost
     delay(500);
     Serial.println("No, re-connecting" );
+    lcd.clear();
+    lcd.print("No, re-conneting");
     client.connect(clientId, deviceId, deviceSecret);
     delay(1000);                                            // wait for reconnecting
   }
@@ -129,7 +141,7 @@ void Connect_MQTT_server(){
     else{
        Serial.println(client.state());
     }    
-  } 
+  }
 }
 
 //  Receive incoming MQTT message   
