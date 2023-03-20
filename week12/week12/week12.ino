@@ -43,7 +43,7 @@ void setup() {
   lcd.begin(16, 2);
   Serial.begin(9600);
   Serial.println("Start 20.3.2023");
-
+  pinMode(A2, INPUT);
   fetch_IP();
   Connect_MQTT_server();  
 }
