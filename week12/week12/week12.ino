@@ -26,7 +26,7 @@ Keypad customKeypad = Keypad(makeKeymap(hexaKeys), pin_rows, pin_column, ROWS, C
 EthernetClient ethClient; //Create the eth object
 static uint8_t mymac[6] = { 0x44,0x76,0x58,0x10,0x00,0x62 };
 unsigned int Port = 1883;                         
-byte server[] = { 172,16,200,88 }; 
+byte server[] = { 10,6,0,20 }; 
 
 char* deviceId = "picha"; //
 char* clientId = "pi2023";
@@ -35,8 +35,8 @@ char* deviceSecret = "tamk";
 void callback(char* topic, byte* payload, unsigned int lenght);
 PubSubClient client(server, Port, callback, ethClient); 
 
-#define inTopic    "myTopic"                    // MQTT channel where data are received 
-#define outTopic   "myTopic" 
+#define inTopic    "ICT18_in_2020"                    // MQTT channel where data are received 
+#define outTopic   "ICT18_out_2020" 
 
 void setup() {
  // set up the LCD's number of columns and rows:
@@ -84,6 +84,8 @@ void send_MQTT_message(int num){                     // Send MQTT message
   else{                                                           //   Re connect if connection is lost
     delay(500);
     Serial.println("No, re-connecting" );
+    lcd.clear();
+    lcd.print("No, re-conneting");
     client.connect(clientId, deviceId, deviceSecret);
     delay(1000);                                            // wait for reconnecting
   }
@@ -107,7 +109,7 @@ void Connect_MQTT_server(){
     else{
        Serial.println(client.state());
     }    
-  } 
+  }
 }
 
 //  Receive incoming MQTT message   
