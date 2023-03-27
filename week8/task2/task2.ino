@@ -65,33 +65,30 @@ void loop() {
   }
   else
   {
-    if ((voltage <= 1.4)){
+    if ((voltage <= 1.2 || voltage == 5.0)){
       lcd.print("North");
     }
-    else if ((voltage <= 2.00) && (voltage > 1.4)){
+    else if ((voltage > 1.67) && (voltage <= 2.15)){
       lcd.print("North East");     
     }
-    else if ((voltage > 2.0) && (voltage <= 2.8)){
+    else if ((voltage > 2.15) && (voltage <= 2.63)){
         lcd.print("East");
       }  
-    else if ((voltage > 2.8) && (voltage <= 3)){
+    else if ((voltage > 2.63) && (voltage <= 3.10)){
       lcd.print("South East");
     }
-    else if ((voltage > 3.0) && (voltage <= 3.2)){
+    else if ((voltage > 3.10) && (voltage <= 3.58)){
       lcd.print("South");
     }
-    else if ((voltage > 3.2) && (voltage <= 3.9)){
+    else if ((voltage > 3.58) && (voltage <= 4.05)){
       lcd.print("South West");
     }
-    else if ((voltage > 3.9) && (voltage <= 4.3)){
+    else if ((voltage > 4.05) && (voltage <= 4.53)){
       lcd.print("West");
     }
-      else if ((voltage > 4.3) && (voltage < 4.8)){
-          lcd.print("North West");
-        }   
     else {
-      lcd.print("North");
-    }
+        lcd.print("North West");
+    }   
   }
 }
 
