@@ -57,7 +57,7 @@ void fetchIP(){
   delay(1500);
 }
 unsigned int Port = 1883;                          //  MQTT port number
-byte server[] = { 10,6,0,20 };                    // TAMK IP
+byte server[] = { 10,6,0,21 };                    // TAMK IP
 
 char* deviceId     = "picha";                   // * set your device id (will be the MQTT client username) *yksilöllinen*
 char* clientId     = "likepi";                       // * set a random string (max 23 chars, will be the MQTT client id) *yksilöllinen*
@@ -72,7 +72,7 @@ PubSubClient client(server, Port, callback, ethClient);   // mqtt client
 //  MQTT topic names 
 
  #define inTopic    "ICT1B_in_2020"                    // * MQTT channel where data are received 
- #define outTopic   "ICT1B_out_2020"                   // * MQTT channel where data is send 
+ #define outTopic   "ICT4_out_2020"                   // * MQTT channel where data is send 
                           
 
 void Connect_MQTT_server(){ 
@@ -93,6 +93,32 @@ void Connect_MQTT_server(){
     }    
   } 
 }
+void send_MQTT_message(int num){                     // Send MQTT message
+  char bufa[50];                             //  Print message to serial monitor
+  if (client.connected()){ 
+    sprintf(bufa,"My_MQTT_message: value =%d", num);               // create message with header and data
+    Serial.println( bufa ); 
+    client.publish(outTopic,bufa);
+    Serial.println("Message was sent");                        // send message to MQTT server        
+  }
+  else{                                                           //   Re connect if connection is lost
+    delay(500);
+    Serial.println("No, re-connecting" );
+    client.connect(clientId, deviceId, deviceSecret);
+    delay(1000);                                            // wait for reconnecting
+  }
+}
+
+
+
+void callback(char* topic, byte* payload, unsigned int length){ 
+  char* receiv_string;                               // copy the payload content into a char* 
+  receiv_string = (char*) malloc(length + 1); 
+  memcpy(receiv_string, payload, length);           // copy received message to receiv_string 
+  receiv_string[length] = '\0';           
+  Serial.println( receiv_string );
+  free(receiv_string); 
+} 
 
 void setup() {
  // set up the LCD's number of columns and rows:
@@ -125,7 +151,7 @@ void loop() {
     if (key == '*'){
       printVoltage = !printVoltage;
     }
-    else if (key == 'D'){}
+    else if (key == 'D'){
       lcd.clear();
       lcd.setCursor(0,0);
       lcd.print("myIP=");
@@ -138,7 +164,7 @@ void loop() {
       lcd.print("Sending message to server");
       send_MQTT_message(voltage);
     }
-
+  }
   
   if (printVoltage) {
     int degrees = voltage * 360/5;
@@ -176,28 +202,4 @@ void loop() {
     }
   }
 }
-void send_MQTT_message(int num){                     // Send MQTT message
-  char bufa[50];                             //  Print message to serial monitor
-  if (client.connected()){ 
-    sprintf(bufa,"My_MQTT_message: value =%d", num);               // create message with header and data
-    Serial.println( bufa ); 
-    client.publish(outTopic,bufa);                        // send message to MQTT server        
-  }
-  else{                                                           //   Re connect if connection is lost
-    delay(500);
-    Serial.println("No, re-connecting" );
-    client.connect(clientId, deviceId, deviceSecret);
-    delay(1000);                                            // wait for reconnecting
-  }
-}
 
-
-
-void callback(char* topic, byte* payload, unsigned int length){ 
-  char* receiv_string;                               // copy the payload content into a char* 
-  receiv_string = (char*) malloc(length + 1); 
-  memcpy(receiv_string, payload, length);           // copy received message to receiv_string 
-  receiv_string[length] = '\0';           
-  Serial.println( receiv_string );
-  free(receiv_string); 
-} 
