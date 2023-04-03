@@ -1,4 +1,7 @@
 #include <LiquidCrystal.h>
+#include <Ethernet.h>
+#include <PubSubClient.h>
+#include <TimerOne.h>
 #include <Keypad.h>
 
 
@@ -25,8 +28,36 @@ byte pin_column[COLS] = {6, 7, 8, 9}; //connect to the column pinouts of the key
 
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), pin_rows, pin_column, ROWS, COLS);
 
+EthernetClient ethClient;                               // Ethernet object var  
+void fetch_IP(void);
+#define  mac_6    0x73
+static uint8_t mymac[6] = { 0x44,0x76,0x58,0x10,0x00,mac_6 };
+byte rev=1;
 void buttonISR () {
   printVoltage = !printVoltage;
+}
+
+void printIP(){
+
+  lcd.setCursor(0,1);  
+  lcd.print("     Waiting IP     ");
+  rev=Ethernet.begin( mymac);                  // get IP number
+     
+  Serial.print( F("\nW5100 Revision ") );
+    
+  if ( rev == 0){          
+    Serial.println( F( "Failed to access Ethernet controller" ) );
+    lcd.setCursor(0,0); lcd.print(" Ethernet failed   ");
+  }           
+  Serial.println( F( "Setting up DHCP" ));
+  Serial.print("Connected with IP: "); 
+  Serial.println(Ethernet.localIP()); 
+  lcd.setCursor(0,1);
+  lcd.print("                     ");
+  lcd.setCursor(0,1);
+  lcd.print("myIP=");
+  lcd.print(Ethernet.localIP());
+  delay(1500);
 }
 
 void setup() {
@@ -50,20 +81,12 @@ void loop() {
   float pin = analogRead(A2);
   float voltage = (5*(pin/1023));
 
-  char key = customKeypad.getKey();
-
-  if (key){
-    Serial.print(key);
-    if (key == '*')
-      printVoltage = !printVoltage;
-  }
-
   lcd.setCursor(0, 0);
   
   if (printVoltage) {
     int degrees = voltage * 360/5;
+
     lcd.print(degrees);
-    lcd.print("v");
   }
   else
   {
