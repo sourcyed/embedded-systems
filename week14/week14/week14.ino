@@ -74,7 +74,25 @@ PubSubClient client(server, Port, callback, ethClient);   // mqtt client
  #define inTopic    "ICT1B_in_2020"                    // * MQTT channel where data are received 
  #define outTopic   "ICT1B_out_2020"                   // * MQTT channel where data is send 
                           
-//  SETUP section
+
+void Connect_MQTT_server(){ 
+  Serial.println(" Connecting to MQTT" );
+  Serial.print(server[0]); Serial.print(".");     // Print MQTT server IP number to Serial monitor
+  Serial.print(server[1]); Serial.print(".");
+  Serial.print(server[2]); Serial.print(".");
+  Serial.println(server[3]); 
+  delay(500);
+  
+  if (!client.connected()){                                   // check if allready connected  
+    if (client.connect(clientId, deviceId, deviceSecret)){ // connection to MQTT server 
+      Serial.println(" Connected OK " );
+      client.subscribe(inTopic);                        // subscript to in topic        
+    } 
+    else{
+       Serial.println(client.state());
+    }    
+  } 
+}
 
 void setup() {
  // set up the LCD's number of columns and rows:
@@ -86,7 +104,7 @@ void setup() {
   pinMode(A2, INPUT);
   pinMode(buttonPin, INPUT);
   pinMode(13, OUTPUT);
-  fetch_IP();                                         // initialize Ethernet connection
+  fetchIP();                                         // initialize Ethernet connection
   Connect_MQTT_server();                              // connect to MQTT server 
 }
 
@@ -96,7 +114,6 @@ void loop() {
    lcd.clear();
   float pin = analogRead(A2);
   float voltage = (5*(pin/1023));
-  char direction[12];
 
 
   lcd.setCursor(0, 0);
@@ -105,19 +122,23 @@ void loop() {
 
   if (key){
     Serial.print(key);
-    if (key == '*')
+    if (key == '*'){
       printVoltage = !printVoltage;
-    else if (key == 'D')
+    }
+    else if (key == 'D'){}
       lcd.clear();
-      lcd.setCursor(0,1);
+      lcd.setCursor(0,0);
       lcd.print("myIP=");
       lcd.print(Ethernet.localIP());
       delay(1500);
-    else if (key == 'C')
+    }
+    else if (key == 'C'){
+      lcd.clear();
+      lcd.setCursor(0, 1);
+      lcd.print("Sending message to server");
       send_MQTT_message(voltage);
-    else if (key == 'B')
-      send_MQTT_message()
-  }
+    }
+
   
   if (printVoltage) {
     int degrees = voltage * 360/5;
@@ -127,23 +148,18 @@ void loop() {
   else
   {
     if ((voltage <= 1.4)){
-      direction = "North";
-      lcd.print(direction);
+      lcd.print("North");
     }
     else if ((voltage <= 2.00) && (voltage > 1.4)){
-      direction = "North East";
-      lcd.print(direction);     
+      lcd.print("North East");     
     }
     else if ((voltage > 2.0) && (voltage <= 2.8)){
-      direction = "East";
-        lcd.print(direction);
+        lcd.print("East");
       }  
     else if ((voltage > 2.8) && (voltage <= 3)){
-      direction = "South East";
       lcd.print("South East");
     }
     else if ((voltage > 3.0) && (voltage <= 3.2)){
-      direction 
       lcd.print("South");
     }
     else if ((voltage > 3.2) && (voltage <= 3.9)){
@@ -152,9 +168,9 @@ void loop() {
     else if ((voltage > 3.9) && (voltage <= 4.3)){
       lcd.print("West");
     }
-      else if ((voltage > 4.3) && (voltage < 4.8)){
-          lcd.print("North West");
-        }   
+    else if ((voltage > 4.3) && (voltage < 4.8)){
+        lcd.print("North West");
+      }   
     else {
       lcd.print("North");
     }
@@ -175,24 +191,7 @@ void send_MQTT_message(int num){                     // Send MQTT message
   }
 }
 
-void Connect_MQTT_server(){ 
-  Serial.println(" Connecting to MQTT" );
-  Serial.print(server[0]); Serial.print(".");     // Print MQTT server IP number to Serial monitor
-  Serial.print(server[1]); Serial.print(".");
-  Serial.print(server[2]); Serial.print(".");
-  Serial.println(server[3]); 
-  delay(500);
-  
-  if (!client.connected()){                                   // check if allready connected  
-    if (client.connect(clientId, deviceId, deviceSecret)){ // connection to MQTT server 
-      Serial.println(" Connected OK " );
-      client.subscribe(inTopic);                        // subscript to in topic        
-    } 
-    else{
-       Serial.println(client.state());
-    }    
-  } 
-}
+
 
 void callback(char* topic, byte* payload, unsigned int length){ 
   char* receiv_string;                               // copy the payload content into a char* 
