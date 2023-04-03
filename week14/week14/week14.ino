@@ -11,7 +11,7 @@ const int rs = 37, en = 36, d4 = 35, d5 = 34, d6 = 33, d7 = 32;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 int buttonPin = 10; // Pin connected to the button
-volatile bool printVoltage = true;
+volatile bool printSpeed = true;
 
 const byte ROWS = 4; 
 const byte COLS = 4; 
@@ -93,10 +93,13 @@ void Connect_MQTT_server(){
     }    
   } 
 }
-void send_MQTT_message(int num){                     // Send MQTT message
+void send_MQTT_message(bool isSpeed, int num){                     // Send MQTT message
   char bufa[50];                             //  Print message to serial monitor
   if (client.connected()){ 
-    sprintf(bufa,"My_MQTT_message: value =%d", num);               // create message with header and data
+    if (isSpeed)
+      sprintf(bufa,"IOTJS={\"S_name1\":\"Wind_speed\",\"S_value1\":%d}", num);               // create message with header and data
+    else
+      sprintf(bufa,"IOTJS={\"S_name1\":\"Wind_dir\",\"S_value1\":%d}", num);               // create message with header and data
     Serial.println( bufa ); 
     client.publish(outTopic,bufa);
     Serial.println("Message was sent");                        // send message to MQTT server        
@@ -120,6 +123,10 @@ void callback(char* topic, byte* payload, unsigned int length){
   free(receiv_string); 
 } 
 
+int getDegrees(int voltage) {
+  return voltage * 360/5;
+}
+
 void setup() {
  // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
@@ -138,8 +145,9 @@ void loop() {
   // put your main code here, to run repeatedly:
   delay(100);
    lcd.clear();
-  float pin = analogRead(A2);
-  float voltage = (5*(pin/1023));
+  float dirPin = analogRead(A2);
+  int dir = getDegrees(5*(dirPin/1023));
+  float speed;
 
 
   lcd.setCursor(0, 0);
@@ -149,7 +157,7 @@ void loop() {
   if (key){
     Serial.print(key);
     if (key == '*'){
-      printVoltage = !printVoltage;
+      printSpeed = !printSpeed;
     }
     else if (key == 'D'){
       lcd.clear();
@@ -158,48 +166,78 @@ void loop() {
       lcd.print(Ethernet.localIP());
       delay(1500);
     }
-    else if (key == 'C'){
+    else if (key == '#'){
       lcd.clear();
       lcd.setCursor(0, 1);
       lcd.print("Sending message to server");
-      send_MQTT_message(voltage);
+      if (printSpeed)
+        send_MQTT_message(true, speed);
+      else
+        send_MQTT_message(false, dir);
     }
+    else if (key == '0')
+      speed = 0;
+    else if (key == '1')
+      speed = 1;
+    else if (key == '2')
+      speed = 2;
+    else if (key == '3')
+      speed = 3;
+    else if (key == '4')
+      speed = 4;
+    else if (key == '5')
+      speed = 5;
+    else if (key == '6')
+      speed = 6;
+    else if (key == '7')
+      speed = 7;
+    else if (key == '8')
+      speed = 8;
+    else if (key == '9')
+      speed = 9;
   }
-  
-  if (printVoltage) {
-    int degrees = voltage * 360/5;
 
-    lcd.print(degrees);
+  lcd.setCursor(0,1);  
+  lcd.print("* change # send");
+  lcd.setCursor(0,0);
+
+  if (printSpeed) {
+    lcd.print("Speed:");
+    lcd.setCursor(7,0);
+    lcd.print(speed);
   }
   else
   {
-    if ((voltage <= 1.4)){
-      lcd.print("North");
-    }
-    else if ((voltage <= 2.00) && (voltage > 1.4)){
-      lcd.print("North East");     
-    }
-    else if ((voltage > 2.0) && (voltage <= 2.8)){
-        lcd.print("East");
-      }  
-    else if ((voltage > 2.8) && (voltage <= 3)){
-      lcd.print("South East");
-    }
-    else if ((voltage > 3.0) && (voltage <= 3.2)){
-      lcd.print("South");
-    }
-    else if ((voltage > 3.2) && (voltage <= 3.9)){
-      lcd.print("South West");
-    }
-    else if ((voltage > 3.9) && (voltage <= 4.3)){
-      lcd.print("West");
-    }
-    else if ((voltage > 4.3) && (voltage < 4.8)){
-        lcd.print("North West");
-      }   
-    else {
-      lcd.print("North");
-    }
+    lcd.print("Dir:");
+    lcd.setCursor(5,0);
+    lcd.print(dir);
+    // if ((voltage <= 1.4)){
+    //   lcd.print("North");
+    // }
+    // else if ((voltage <= 2.00) && (voltage > 1.4)){
+    //   lcd.print("North East");     
+    // }
+    // else if ((voltage > 2.0) && (voltage <= 2.8)){
+    //     lcd.print("East");
+    //   }  
+    // else if ((voltage > 2.8) && (voltage <= 3)){
+    //   lcd.print("South East");
+    // }
+    // else if ((voltage > 3.0) && (voltage <= 3.2)){
+    //   lcd.print("South");
+    // }
+    // else if ((voltage > 3.2) && (voltage <= 3.9)){
+    //   lcd.print("South West");
+    // }
+    // else if ((voltage > 3.9) && (voltage <= 4.3)){
+    //   lcd.print("West");
+    // }
+    // else if ((voltage > 4.3) && (voltage < 4.8)){
+    //     lcd.print("North West");
+    //   }   
+    // else {
+    //   lcd.print("North");
+    // }
   }
 }
 
