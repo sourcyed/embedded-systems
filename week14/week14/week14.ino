@@ -33,11 +33,8 @@ void fetch_IP(void);
 #define  mac_6    0x73
 static uint8_t mymac[6] = { 0x44,0x76,0x58,0x10,0x00,mac_6 };
 byte rev=1;
-void buttonISR () {
-  printVoltage = !printVoltage;
-}
 
-void printIP(){
+void fetchIP(){
 
   lcd.setCursor(0,1);  
   lcd.print("     Waiting IP     ");
@@ -59,6 +56,25 @@ void printIP(){
   lcd.print(Ethernet.localIP());
   delay(1500);
 }
+unsigned int Port = 1883;                          //  MQTT port number
+byte server[] = { 10,6,0,20 };                    // TAMK IP
+
+char* deviceId     = "picha";                   // * set your device id (will be the MQTT client username) *yksilöllinen*
+char* clientId     = "likepi";                       // * set a random string (max 23 chars, will be the MQTT client id) *yksilöllinen*
+char* deviceSecret = "tamk";                        // * set your device secret (will be the MQTT client password) *kaikille yhteinen*
+
+//  MQTT Server settings  
+
+void callback(char* topic, byte* payload, unsigned int length); // subscription callback for received MQTTT messages   
+
+PubSubClient client(server, Port, callback, ethClient);   // mqtt client 
+
+//  MQTT topic names 
+
+ #define inTopic    "ICT1B_in_2020"                    // * MQTT channel where data are received 
+ #define outTopic   "ICT1B_out_2020"                   // * MQTT channel where data is send 
+                          
+//  SETUP section
 
 void setup() {
  // set up the LCD's number of columns and rows:
@@ -70,8 +86,8 @@ void setup() {
   pinMode(A2, INPUT);
   pinMode(buttonPin, INPUT);
   pinMode(13, OUTPUT);
-
-  attachInterrupt(digitalPinToInterrupt(buttonPin), buttonISR, RISING);
+  fetch_IP();                                         // initialize Ethernet connection
+  Connect_MQTT_server();                              // connect to MQTT server 
 }
 
 void loop() {
@@ -80,8 +96,28 @@ void loop() {
    lcd.clear();
   float pin = analogRead(A2);
   float voltage = (5*(pin/1023));
+  char direction[12];
+
 
   lcd.setCursor(0, 0);
+
+  char key = customKeypad.getKey();
+
+  if (key){
+    Serial.print(key);
+    if (key == '*')
+      printVoltage = !printVoltage;
+    else if (key == 'D')
+      lcd.clear();
+      lcd.setCursor(0,1);
+      lcd.print("myIP=");
+      lcd.print(Ethernet.localIP());
+      delay(1500);
+    else if (key == 'C')
+      send_MQTT_message(voltage);
+    else if (key == 'B')
+      send_MQTT_message()
+  }
   
   if (printVoltage) {
     int degrees = voltage * 360/5;
@@ -91,18 +127,23 @@ void loop() {
   else
   {
     if ((voltage <= 1.4)){
-      lcd.print("North");
+      direction = "North";
+      lcd.print(direction);
     }
     else if ((voltage <= 2.00) && (voltage > 1.4)){
-      lcd.print("North East");     
+      direction = "North East";
+      lcd.print(direction);     
     }
     else if ((voltage > 2.0) && (voltage <= 2.8)){
-        lcd.print("East");
+      direction = "East";
+        lcd.print(direction);
       }  
     else if ((voltage > 2.8) && (voltage <= 3)){
+      direction = "South East";
       lcd.print("South East");
     }
     else if ((voltage > 3.0) && (voltage <= 3.2)){
+      direction 
       lcd.print("South");
     }
     else if ((voltage > 3.2) && (voltage <= 3.9)){
@@ -119,3 +160,45 @@ void loop() {
     }
   }
 }
+void send_MQTT_message(int num){                     // Send MQTT message
+  char bufa[50];                             //  Print message to serial monitor
+  if (client.connected()){ 
+    sprintf(bufa,"My_MQTT_message: value =%d", num);               // create message with header and data
+    Serial.println( bufa ); 
+    client.publish(outTopic,bufa);                        // send message to MQTT server        
+  }
+  else{                                                           //   Re connect if connection is lost
+    delay(500);
+    Serial.println("No, re-connecting" );
+    client.connect(clientId, deviceId, deviceSecret);
+    delay(1000);                                            // wait for reconnecting
+  }
+}
+
+void Connect_MQTT_server(){ 
+  Serial.println(" Connecting to MQTT" );
+  Serial.print(server[0]); Serial.print(".");     // Print MQTT server IP number to Serial monitor
+  Serial.print(server[1]); Serial.print(".");
+  Serial.print(server[2]); Serial.print(".");
+  Serial.println(server[3]); 
+  delay(500);
+  
+  if (!client.connected()){                                   // check if allready connected  
+    if (client.connect(clientId, deviceId, deviceSecret)){ // connection to MQTT server 
+      Serial.println(" Connected OK " );
+      client.subscribe(inTopic);                        // subscript to in topic        
+    } 
+    else{
+       Serial.println(client.state());
+    }    
+  } 
+}
+
+void callback(char* topic, byte* payload, unsigned int length){ 
+  char* receiv_string;                               // copy the payload content into a char* 
+  receiv_string = (char*) malloc(length + 1); 
+  memcpy(receiv_string, payload, length);           // copy received message to receiv_string 
+  receiv_string[length] = '\0';           
+  Serial.println( receiv_string );
+  free(receiv_string); 
+} 
