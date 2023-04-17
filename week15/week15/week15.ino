@@ -98,13 +98,13 @@ void send_MQTT_message(int index, float num1, float num2){                     /
   char bufa[50];                             //  Print message to serial monitor
   if (client.connected()){ 
     if (index == 1) {
-      dtostrf(num , 4, 1, outstrg);
+      dtostrf(num1 , 4, 1, outstrg);
       sprintf(bufa,"IOTJS={\"S_name1\":\"-speed-\",\"S_value1\":%s}", outstrg);     
       }          // create message with header and data
     else if (index == 2) {
-      dtostrf(num , 4, 1, outstrg);
+      dtostrf(num1 , 4, 1, outstrg);
       sprintf(bufa,"IOTJS={\"S_name1\":\"-direction-\",\"S_value1\":%s}", outstrg);               // create message with header and data
-    
+    }
     else if (index == 3) {
       dtostrf(num1 , 4, 1, outstrg);
       sprintf(bufa,"IOTJS={\"S_name1\":\"-speed-\",\"S_value1\":%s}", outstrg);
@@ -113,9 +113,9 @@ void send_MQTT_message(int index, float num1, float num2){                     /
     }                 
     Serial.println( bufa ); 
     client.publish(outTopic,bufa);
-    Serial.println("Message was sent");    }      
-  }
-  else{                                                           //   Re connect if connection is lost
+    Serial.println("Message was sent");    
+    }      
+  else {                                                           //   Re connect if connection is lost
     delay(500);
     Serial.println("No, re-connecting" );
     client.connect(clientId, deviceId, deviceSecret);
@@ -168,8 +168,8 @@ void loop() {
   if (key){
     Serial.print(key);
     if (key == '*'){
-      if (key != 3) printWhich += 1;
-      else printWhich = 1;
+      if (printWhich != 3) printWhich += 1;
+      else if (printWhich >= 3) printWhich = 1;
     }
     else if (key == 'D'){
       lcd.clear();
@@ -227,12 +227,8 @@ void loop() {
     lcd.print(dir);
   }
   else if (printWhich == 3) {
-    lcd.print("Speed:");
-    lcd.setCursor(8,0);
     lcd.print(speed);
-    lcd.setCursor(1,0);
-    lcd.print("Dir:");
-    lcd.setCursor(1,8);
+    lcd.setCursor(8,0);
     lcd.print(dir);
   }
 }
