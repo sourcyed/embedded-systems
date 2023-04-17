@@ -11,7 +11,7 @@ const int rs = 37, en = 36, d4 = 35, d5 = 34, d6 = 33, d7 = 32;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
 int buttonPin = 10; // Pin connected to the button
-volatile bool printSpeed = true;
+volatile int printWhich = 1;
 
 const byte ROWS = 4; 
 const byte COLS = 4; 
@@ -94,19 +94,26 @@ void Connect_MQTT_server(){
     }    
   } 
 }
-void send_MQTT_message(bool isSpeed, float num){                     // Send MQTT message
+void send_MQTT_message(int index, float num1, float num2){                     // Send MQTT message
   char bufa[50];                             //  Print message to serial monitor
   if (client.connected()){ 
-    if (isSpeed) {
+    if (index == 1) {
       dtostrf(num , 4, 1, outstrg);
-      sprintf(bufa,"IOTJS={\"S_name1\":\"Suffering\",\"S_value1\":%s}", outstrg);     
+      sprintf(bufa,"IOTJS={\"S_name1\":\"-speed-\",\"S_value1\":%s}", outstrg);     
       }          // create message with header and data
-    else {
+    else if (index == 2) {
       dtostrf(num , 4, 1, outstrg);
-      sprintf(bufa,"IOTJS={\"S_name1\":\"Darkness\",\"S_value1\":%s}", outstrg);               // create message with header and data
+      sprintf(bufa,"IOTJS={\"S_name1\":\"-direction-\",\"S_value1\":%s}", outstrg);               // create message with header and data
+    
+    else if (index == 3) {
+      dtostrf(num1 , 4, 1, outstrg);
+      sprintf(bufa,"IOTJS={\"S_name1\":\"-speed-\",\"S_value1\":%s}", outstrg);
+      dtostrf(num2 , 4, 1, outstrg);
+      sprintf(bufa,"IOTJS={\"S_name2\":\"-direction-\",\"S_value2\":%s}", outstrg); 
+    }                 
     Serial.println( bufa ); 
     client.publish(outTopic,bufa);
-    Serial.println("Message was sent");    }                    // send message to MQTT server        
+    Serial.println("Message was sent");    }      
   }
   else{                                                           //   Re connect if connection is lost
     delay(500);
@@ -161,7 +168,8 @@ void loop() {
   if (key){
     Serial.print(key);
     if (key == '*'){
-      printSpeed = !printSpeed;
+      if (key != 3) printWhich += 1;
+      else printWhich = 1;
     }
     else if (key == 'D'){
       lcd.clear();
@@ -174,10 +182,12 @@ void loop() {
       lcd.clear();
       lcd.setCursor(0, 1);
       lcd.print("Sending message to server");
-      if (printSpeed)
-        send_MQTT_message(true, speed);
-      else
-        send_MQTT_message(false, dir);
+      if (printWhich == 1)
+        send_MQTT_message(1, speed, 0);
+      else if (printWhich == 2)
+        send_MQTT_message(2, dir, 0);
+      else if (printWhich == 3)
+        send_MQTT_message(3, speed, dir);
     }
     else if (key == '0')
       speed = 0;
@@ -205,15 +215,24 @@ void loop() {
   lcd.print("* change # send");
   lcd.setCursor(0,0);
 
-  if (printSpeed) {
+  if (printWhich == 1) {
     lcd.print("Speed:");
     lcd.setCursor(7,0);
     lcd.print(speed);
   }
-  else
+  else if (printWhich == 2)
   {
     lcd.print("Dir:");
     lcd.setCursor(5,0);
+    lcd.print(dir);
+  }
+  else if (printWhich == 3) {
+    lcd.print("Speed:");
+    lcd.setCursor(8,0);
+    lcd.print(speed);
+    lcd.setCursor(1,0);
+    lcd.print("Dir:");
+    lcd.setCursor(1,8);
     lcd.print(dir);
   }
 }
