@@ -5,6 +5,9 @@
 #include <Keypad.h>
 
 
+/* this is also for the windSpeed */
+float time = 1; // maybe it should be double
+
 // initialize the library by associating any needed LCD interface pin
 // with the arduino pin number it is connected to
 const int rs = 37, en = 36, d4 = 35, d5 = 34, d6 = 33, d7 = 32;
@@ -150,6 +153,9 @@ void setup() {
   pinMode(13, OUTPUT);
   fetchIP();                                         // initialize Ethernet connection
   Connect_MQTT_server();                              // connect to MQTT server 
+
+    /* count for windSpeed */
+  attachInterrupt(digitalPinToInterrupt(11), count, RISING);
 }
 
 void loop() {
@@ -158,7 +164,10 @@ void loop() {
    lcd.clear();
   float dirPin = analogRead(A3);
   float dir = getDegrees(5*(dirPin/1023));
-  float speed;
+  
+  /* this time it is actually something */
+  float speed = -0.24 + (1 / (time/1000) ) * 0.699;
+
 
 
   lcd.setCursor(0, 0);
@@ -233,3 +242,22 @@ void loop() {
   }
 }
 
+
+/* This is for time for the windSpeed */
+
+int pressed = 0;
+float startTime, endTime;
+
+void count() {
+  if (pressed == 0){
+    startTime = milis();
+  } else if (pressed == 1) {
+    endTime = milis();
+    time = endTime - startTime;
+  } else {
+    startTime = endTime;
+    endTime = milis();
+    time = endTime - startTime;
+  }
+  pressed++;
+}
