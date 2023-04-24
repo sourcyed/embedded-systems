@@ -210,7 +210,6 @@ void loop() {
 
   // calculate speed and direction averages
 
-
   if (sdCount > 10)  // we have at least 10 measurements --> creating average, otherwise 0
   {
     float speedSum = 0;
