@@ -24,39 +24,45 @@ int buttonPin = 10;
 const byte ROWS = 4;
 const byte COLS = 4;
 char hexaKeys[ROWS][COLS] = {
-    {'1', '2', '3', 'A'},
-    {'4', '5', '6', 'B'},
-    {'7', '8', '9', 'C'},
-    {'*', '0', '#', 'D'}};
-byte pin_rows[ROWS] = {2, 3, 4, 5};
-byte pin_column[COLS] = {6, 7, 8, 9};
+  { '1', '2', '3', 'A' },
+  { '4', '5', '6', 'B' },
+  { '7', '8', '9', 'C' },
+  { '*', '0', '#', 'D' }
+};
+byte pin_rows[ROWS] = { 2, 3, 4, 5 };
+byte pin_column[COLS] = { 6, 7, 8, 9 };
 Keypad customKeypad = Keypad(makeKeymap(hexaKeys), pin_rows, pin_column, ROWS, COLS);
 
 // Ethernet
 EthernetClient ethClient;
-byte server[] = {10, 6, 0, 21}; // TAMK IP
+byte server[] = { 10, 6, 0, 21 };  // TAMK IP
 #define mac_6 0x73
-static uint8_t mymac[6] = {0x44, 0x76, 0x58, 0x10, 0x00, mac_6};
+static uint8_t mymac[6] = { 0x44, 0x76, 0x58, 0x10, 0x00, mac_6 };
 
 // Wind Speed
 volatile float time = 1;
+float speedArray[10];
+int sdCount = 0;
+float speedAvg = 0;
+
+// Wind Direction
+float dirArray[10];
+float dirAvg = 0;
 
 void fetch_IP(void);
 #define mac_6 0x73
 byte rev = 1;
 char outstrg[4];
 
-void fetchIP()
-{
+void fetchIP() {
 
   lcd.setCursor(0, 1);
   lcd.print("     Waiting IP     ");
-  rev = Ethernet.begin(mymac); // get IP number
+  rev = Ethernet.begin(mymac);  // get IP number
 
   Serial.print(F("\nW5100 Revision "));
 
-  if (rev == 0)
-  {
+  if (rev == 0) {
     Serial.println(F("Failed to access Ethernet controller"));
     lcd.setCursor(0, 0);
     lcd.print(" Ethernet failed   ");
@@ -72,25 +78,24 @@ void fetchIP()
   delay(1500);
 }
 
-unsigned int Port = 1883;    //  MQTT port number
-char *deviceId = "picha";    // * set your device id (will be the MQTT client username) *yksilöllinen*
-char *clientId = "likepi";   // * set a random string (max 23 chars, will be the MQTT client id) *yksilöllinen*
-char *deviceSecret = "tamk"; // * set your device secret (will be the MQTT client password) *kaikille yhteinen*
+unsigned int Port = 1883;     //  MQTT port number
+char *deviceId = "picha";     // * set your device id (will be the MQTT client username) *yksilöllinen*
+char *clientId = "likepi";    // * set a random string (max 23 chars, will be the MQTT client id) *yksilöllinen*
+char *deviceSecret = "tamk";  // * set your device secret (will be the MQTT client password) *kaikille yhteinen*
 
 //  MQTT Server settings
 
-void callback(char *topic, byte *payload, unsigned int length); // subscription callback for received MQTTT messages
+void callback(char *topic, byte *payload, unsigned int length);  // subscription callback for received MQTTT messages
 
-PubSubClient client(server, Port, callback, ethClient); // mqtt client
+PubSubClient client(server, Port, callback, ethClient);  // mqtt client
 
 //  MQTT topic names
 
-#define inTopic "ICT1B_in_2020"  // * MQTT channel where data are received
-#define outTopic "ICT4_out_2020" // * MQTT channel where data is send
+#define inTopic "ICT1B_in_2020"   // * MQTT channel where data are received
+#define outTopic "ICT4_out_2020"  // * MQTT channel where data is send
 
 /* setup  */
-void setup()
-{
+void setup() {
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
 
@@ -100,18 +105,17 @@ void setup()
   pinMode(A2, INPUT);
   pinMode(buttonPin, INPUT);
   pinMode(13, OUTPUT);
-  fetchIP();             // initialize Ethernet connection
-  Connect_MQTT_server(); // connect to MQTT server
+  fetchIP();              // initialize Ethernet connection
+  Connect_MQTT_server();  // connect to MQTT server
 
   /* count for windSpeed */
   attachInterrupt(digitalPinToInterrupt(11), count, RISING);
 }
 
-void Connect_MQTT_server()
-{
+void Connect_MQTT_server() {
   Serial.println(" Connecting to MQTT");
   Serial.print(server[0]);
-  Serial.print("."); // Print MQTT server IP number to Serial monitor
+  Serial.print(".");  // Print MQTT server IP number to Serial monitor
   Serial.print(server[1]);
   Serial.print(".");
   Serial.print(server[2]);
@@ -119,36 +123,26 @@ void Connect_MQTT_server()
   Serial.println(server[3]);
   delay(500);
 
-  if (!client.connected())
-  { // check if allready connected
-    if (client.connect(clientId, deviceId, deviceSecret))
-    { // connection to MQTT server
+  if (!client.connected()) {                                 // check if allready connected
+    if (client.connect(clientId, deviceId, deviceSecret)) {  // connection to MQTT server
       Serial.println(" Connected OK ");
-      client.subscribe(inTopic); // subscript to in topic
-    }
-    else
-    {
+      client.subscribe(inTopic);  // subscript to in topic
+    } else {
       Serial.println(client.state());
     }
   }
 }
-void send_MQTT_message(int index, float num1, float num2)
-{                // Send MQTT message
-  char bufa[50]; //  Print message to serial monitor
-  if (client.connected())
-  {
-    if (index == 1)
-    {
+void send_MQTT_message(int index, float num1, float num2) {  // Send MQTT message
+  char bufa[50];                                             //  Print message to serial monitor
+  if (client.connected()) {
+    if (index == 1) {
       dtostrf(num1, 4, 1, outstrg);
       sprintf(bufa, "IOTJS={\"S_name1\":\"-speed-\",\"S_value1\":%s}", outstrg);
-    } // create message with header and data
-    else if (index == 2)
-    {
+    }  // create message with header and data
+    else if (index == 2) {
       dtostrf(num1, 4, 1, outstrg);
-      sprintf(bufa, "IOTJS={\"S_name1\":\"-direction-\",\"S_value1\":%s}", outstrg); // create message with header and data
-    }
-    else if (index == 3)
-    {
+      sprintf(bufa, "IOTJS={\"S_name1\":\"-direction-\",\"S_value1\":%s}", outstrg);  // create message with header and data
+    } else if (index == 3) {
       dtostrf(num1, 4, 1, outstrg);
       sprintf(bufa, "IOTJS={\"S_name1\":\"-speed-\",\"S_value1\":%s}", outstrg);
       dtostrf(num2, 4, 1, outstrg);
@@ -157,28 +151,24 @@ void send_MQTT_message(int index, float num1, float num2)
     Serial.println(bufa);
     client.publish(outTopic, bufa);
     Serial.println("Message was sent");
-  }
-  else
-  { //   Re connect if connection is lost
+  } else {  //   Re connect if connection is lost
     delay(500);
     Serial.println("No, re-connecting");
     client.connect(clientId, deviceId, deviceSecret);
-    delay(1000); // wait for reconnecting
+    delay(1000);  // wait for reconnecting
   }
 }
 
-void callback(char *topic, byte *payload, unsigned int length)
-{
-  char *receiv_string; // copy the payload content into a char*
+void callback(char *topic, byte *payload, unsigned int length) {
+  char *receiv_string;  // copy the payload content into a char*
   receiv_string = (char *)malloc(length + 1);
-  memcpy(receiv_string, payload, length); // copy received message to receiv_string
+  memcpy(receiv_string, payload, length);  // copy received message to receiv_string
   receiv_string[length] = '\0';
   Serial.println(receiv_string);
   free(receiv_string);
 }
 
-float getDegrees(float voltage)
-{
+float getDegrees(float voltage) {
   return voltage * 360 / 5;
 }
 
@@ -187,19 +177,13 @@ float getDegrees(float voltage)
 int pressed = 0;
 float startTime, endTime;
 
-void count()
-{
-  if (pressed == 0)
-  {
+void count() {
+  if (pressed == 0) {
     startTime = millis();
-  }
-  else if (pressed == 1)
-  {
+  } else if (pressed == 1) {
     endTime = millis();
     time = endTime - startTime;
-  }
-  else
-  {
+  } else {
     startTime = endTime;
     endTime = millis();
     time = endTime - startTime;
@@ -207,55 +191,71 @@ void count()
   pressed++;
 }
 
-volatile int printWhich = 1; // weird way to do this but it works
+volatile int printWhich = 1;  // weird way to do this but it works
 
 /* main code that's running repeatedly */
-void loop()
-{
+void loop() {
   delay(100);
   lcd.clear();
-  float dirPin = analogRead(A3);
-  float dir = getDegrees(5 * (dirPin / 1023));
 
-  /* this time it is actually something */
+  float dirPin = analogRead(A3);
+
+  // getting values every second
+  float dir = getDegrees(5 * (dirPin / 1023));
   float speed = -0.24 + (1 / (time / 1000)) * 0.699;
+
+  speedArray[sdCount % 10] = speed;
+  dirArray[sdCount % 10] = dir;
+  sdCount++;
+
+  // calculate speed and direction averages
+
+
+  if (sdCount > 10)  // we have at least 10 measurements --> creating average, otherwise 0
+  {
+    float speedSum = 0;
+    for (int i = 0; i < 10; i++) {
+      speedSum += speedArray[i];
+    }
+
+    float dirSum = 0;
+    for (int i = 0; i < 10; i++) {
+      dirSum += dirArray[i];
+    }
+
+    speedAvg = speedSum / 10;
+    dirAvg = dirSum / 10;
+  }
 
   lcd.setCursor(0, 0);
 
   char key = customKeypad.getKey();
 
-  if (key)
-  {
+  if (key) {
     Serial.print(key);
 
-    if (key == '*')
-    {
+    if (key == '*') {
       if (printWhich != 3)
         printWhich += 1;
       else if (printWhich >= 3)
         printWhich = 1;
-    }
-    else if (key == 'D')
-    {
+    } else if (key == 'D') {
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("myIP=");
       lcd.print(Ethernet.localIP());
       delay(1500);
-    }
-    else if (key == '#')
-    {
+    } else if (key == '#') {
       lcd.clear();
       lcd.setCursor(0, 1);
       lcd.print("Sending message to server");
       if (printWhich == 1)
-        send_MQTT_message(1, speed, 0);
+        send_MQTT_message(1, speedAvg, 0);
       else if (printWhich == 2)
-        send_MQTT_message(2, dir, 0);
+        send_MQTT_message(2, dirAvg, 0);
       else if (printWhich == 3)
-        send_MQTT_message(3, speed, dir);
-    }
-    else if (key == '0')
+        send_MQTT_message(3, speedAvg, dirAvg);
+    } else if (key == '0')
       speed = 0;
     else if (key == '1')
       speed = 1;
@@ -281,22 +281,18 @@ void loop()
   lcd.print("* change # send");
   lcd.setCursor(0, 0);
 
-  if (printWhich == 1)
-  {
+  if (printWhich == 1) {
     lcd.print("Speed:");
     lcd.setCursor(7, 0);
-    lcd.print(speed);
-  }
-  else if (printWhich == 2)
-  {
+
+    lcd.print(speedAvg);
+  } else if (printWhich == 2) {
     lcd.print("Dir:");
     lcd.setCursor(5, 0);
-    lcd.print(dir);
-  }
-  else if (printWhich == 3)
-  {
-    lcd.print(speed);
+    lcd.print(dirAvg);
+  } else if (printWhich == 3) {
+    lcd.print(speedAvg);
     lcd.setCursor(8, 0);
-    lcd.print(dir);
+    lcd.print(dirAvg);
   }
 }
