@@ -250,13 +250,13 @@ float startTime, endTime;
 
 void count() {
   if (pressed == 0){
-    startTime = milis();
+    startTime = millis();
   } else if (pressed == 1) {
-    endTime = milis();
+    endTime = millis();
     time = endTime - startTime;
   } else {
     startTime = endTime;
-    endTime = milis();
+    endTime = millis();
     time = endTime - startTime;
   }
   pressed++;
