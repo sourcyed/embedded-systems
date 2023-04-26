@@ -49,7 +49,7 @@ float speedAvg = 0;
 float dirArray[10];
 float dirAvg = 0;
 
-void fetch_IP(void);
+void fetchIP(void);
 #define mac_6 0x73
 byte rev = 1;
 char outstrg[4];
